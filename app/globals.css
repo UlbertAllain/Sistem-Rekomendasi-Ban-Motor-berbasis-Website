@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+select option {
+  background-color: #ffffff;
+  color: #111827;
+}

@@ -1,0 +1,69 @@
+// lib/services/tireService.ts
+
+import { adminDb } from "../firebase/admin";
+import { Tire, TireSize } from "../types/tire";
+
+const TIRE_COLLECTION = "tires";
+
+export async function getAllTires(): Promise<Tire[]> {
+  const snapshot = await adminDb.collection(TIRE_COLLECTION).get();
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as Tire[];
+}
+
+export async function getTiresBySizeFlexible(
+  frontSize?: TireSize,
+  rearSize?: TireSize
+): Promise<{ tire: Tire; matchedFront?: TireSize; matchedRear?: TireSize }[]> {
+  const allTires = await getAllTires();
+
+  return allTires
+    .map((tire) => {
+      let matchedFront: TireSize | undefined;
+      let matchedRear: TireSize | undefined;
+
+      if (frontSize) {
+        matchedFront = tire.sizes.find(
+          (s) =>
+            s.rim === frontSize.rim &&
+            Math.abs(s.width - frontSize.width) <= 10 &&
+            Math.abs(s.profile - frontSize.profile) <= 10
+        );
+      }
+
+      if (rearSize) {
+        matchedRear = tire.sizes.find(
+          (s) =>
+            s.rim === rearSize.rim &&
+            Math.abs(s.width - rearSize.width) <= 10 &&
+            Math.abs(s.profile - rearSize.profile) <= 10
+        );
+      }
+
+      const frontOk = frontSize ? !!matchedFront : true;
+      const rearOk = rearSize ? !!matchedRear : true;
+
+      if (frontOk && rearOk) {
+        return { tire, matchedFront, matchedRear };
+      }
+      return null;
+    })
+    .filter(Boolean) as { tire: Tire; matchedFront?: TireSize; matchedRear?: TireSize }[];
+}
+
+export async function getTireById(id: string): Promise<Tire | null> {
+  const doc = await adminDb.collection(TIRE_COLLECTION).doc(id).get();
+  if (!doc.exists) return null;
+  return { id: doc.id, ...doc.data() } as Tire;
+}
+
+export async function addTire(tire: Omit<Tire, "id" | "createdAt" | "updatedAt">): Promise<string> {
+  const docRef = await adminDb.collection(TIRE_COLLECTION).add({
+    ...tire,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  });
+  return docRef.id;
+}
