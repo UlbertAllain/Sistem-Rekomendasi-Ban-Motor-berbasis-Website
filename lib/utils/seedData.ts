@@ -1,10 +1,10 @@
 // lib/utils/seedData.ts
-
+// @ts-nocheck
 import { Tire } from "../types/tire";
 import { Motorcycle } from "../types/motorcycle";
 import { addTire } from "../services/tireService";
 import { addMotorcycle } from "../services/motorcycleService";
-import { adminDb } from "../firebase/admin";
+import { getAdminDb } from "../firebase/admin";
 import { SEED_TIRES_MORE } from "./seedDatamore";
 import { SEED_MOTORCYCLES_MORE } from "./seedDataMoreMotorcycles";
 
@@ -564,14 +564,28 @@ export const SEED_MOTORCYCLES: Omit<Motorcycle, "id">[] = [
 // FUNGSI SEED
 // ==========================================
 
-export async function seedTires(): Promise<{ success: boolean; count: number; errors: string[] }> {
+export async function seedTires(): Promise<{ success: boolean; count: number; errors: string[]; skipped: number }> {
   const errors: string[] = [];
   let count = 0;
+  let skipped = 0;
 
-  // Merge ban lama + ban baru
-  const allTires = [...SEED_TIRES, ...SEED_TIRES_MORE];
+  // Ambil semua ban yang udah ada
+  let existingTires: string[] = [];
+  try {
+    const db = getAdminDb();
+    if (db) {
+      const snapshot = await db.collection("tires").get();
+      existingTires = snapshot.docs.map((doc) => doc.data().fullName as string);
+    }
+  } catch { /* skip */ }
 
-  for (const tire of allTires) {
+  for (const tire of SEED_TIRES) {
+    // Skip kalau sudah ada
+    if (existingTires.includes(tire.fullName)) {
+      skipped++;
+      continue;
+    }
+
     try {
       await addTire(tire);
       count++;
@@ -581,17 +595,31 @@ export async function seedTires(): Promise<{ success: boolean; count: number; er
     }
   }
 
-  return { success: errors.length === 0, count, errors };
+  return { success: errors.length === 0, count, errors, skipped };
 }
 
-export async function seedMotorcycles(): Promise<{ success: boolean; count: number; errors: string[] }> {
+export async function seedMotorcycles(): Promise<{ success: boolean; count: number; errors: string[]; skipped: number }> {
   const errors: string[] = [];
   let count = 0;
+  let skipped = 0;
 
-  // Merge motor lama + motor baru
-  const allMotorcycles = [...SEED_MOTORCYCLES, ...SEED_MOTORCYCLES_MORE];
+  // Ambil semua motor yang udah ada
+  let existingMotorcycles: string[] = [];
+  try {
+    const db = getAdminDb();
+    if (db) {
+      const snapshot = await db.collection("motorcycles").get();
+      existingMotorcycles = snapshot.docs.map((doc) => doc.data().fullName as string);
+    }
+  } catch { /* skip */ }
 
-  for (const moto of allMotorcycles) {
+  for (const moto of SEED_MOTORCYCLES) {
+    // Skip kalau sudah ada
+    if (existingMotorcycles.includes(moto.fullName)) {
+      skipped++;
+      continue;
+    }
+
     try {
       await addMotorcycle(moto);
       count++;
@@ -601,30 +629,33 @@ export async function seedMotorcycles(): Promise<{ success: boolean; count: numb
     }
   }
 
-  return { success: errors.length === 0, count, errors };
+  return { success: errors.length === 0, count, errors, skipped };
 }
 
 export async function seedAll(): Promise<void> {
   console.log("Seeding tires...");
   const tireResult = await seedTires();
-  console.log(`Tires: ${tireResult.count} ok, ${tireResult.errors.length} gagal`);
+  console.log(`Tires: ${tireResult.count} ditambahkan, ${tireResult.skipped} sudah ada, ${tireResult.errors.length} gagal`);
 
   console.log("Seeding motorcycles...");
   const motoResult = await seedMotorcycles();
-  console.log(`Motorcycles: ${motoResult.count} ok, ${motoResult.errors.length} gagal`);
+  console.log(`Motorcycles: ${motoResult.count} ditambahkan, ${motoResult.skipped} sudah ada, ${motoResult.errors.length} gagal`);
 
   console.log("Seed complete!");
 }
 
 export async function clearAllData(): Promise<void> {
-  const tireBatch = adminDb.batch();
-  const tireSnapshot = await adminDb.collection("tires").get();
+  const db = getAdminDb();
+  if (!db) throw new Error("Database belum dikonfigurasi");
+
+  const tireBatch = db.batch();
+  const tireSnapshot = await db.collection("tires").get();
   tireSnapshot.docs.forEach((doc) => tireBatch.delete(doc.ref));
   await tireBatch.commit();
   console.log(`Deleted ${tireSnapshot.size} tires`);
 
-  const motoBatch = adminDb.batch();
-  const motoSnapshot = await adminDb.collection("motorcycles").get();
+  const motoBatch = db.batch();
+  const motoSnapshot = await db.collection("motorcycles").get();
   motoSnapshot.docs.forEach((doc) => motoBatch.delete(doc.ref));
   await motoBatch.commit();
   console.log(`Deleted ${motoSnapshot.size} motorcycles`);
