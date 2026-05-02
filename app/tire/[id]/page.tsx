@@ -128,7 +128,7 @@ export default function TireDetailPage() {
             <div className="w-7 h-7 bg-amber-600 rounded-md flex items-center justify-center">
               <span className="text-white font-black text-xs">S</span>
             </div>
-            <span className="font-bold text-sm text-gray-900">SisrekBan</span>
+            <span className="font-bold text-sm text-gray-900">CariBanMu</span>
           </Link>
           <Link href="/recommend" className="text-xs font-medium text-amber-600 hover:underline">
             ← Kembali ke Rekomendasi

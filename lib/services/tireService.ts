@@ -40,8 +40,8 @@ export async function getTiresBySizeFlexible(
         matchedFront = tire.sizes.find(
           (s) =>
             s.rim === frontSize.rim &&
-            Math.abs(s.width - frontSize.width) <= 10 &&
-            Math.abs(s.profile - frontSize.profile) <= 10
+            Math.abs(s.width - frontSize.width) <= 5 &&
+            Math.abs(s.profile - frontSize.profile) <= 5
         );
       }
 
@@ -49,8 +49,8 @@ export async function getTiresBySizeFlexible(
         matchedRear = tire.sizes.find(
           (s) =>
             s.rim === rearSize.rim &&
-            Math.abs(s.width - rearSize.width) <= 10 &&
-            Math.abs(s.profile - rearSize.profile) <= 10
+            Math.abs(s.width - rearSize.width) <= 5 &&
+            Math.abs(s.profile - rearSize.profile) <= 5
         );
       }
 

@@ -186,7 +186,7 @@ export default function RecommendPage() {
             <div className="w-7 h-7 bg-amber-600 rounded-md flex items-center justify-center">
               <span className="text-white font-black text-xs">S</span>
             </div>
-            <span className="font-bold text-sm text-gray-900">SisrekBan</span>
+            <span className="font-bold text-sm text-gray-900">CariBanMu</span>
           </Link>
           <span className="text-xs font-medium text-gray-400">Rekomendasi</span>
         </div>
