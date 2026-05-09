@@ -62,11 +62,11 @@ export default function Home() {
 
           <div className="flex gap-10 mt-14 pt-8 border-t border-gray-200">
             <div>
-              <div className="text-2xl font-black text-gray-900">50</div>
+              <div className="text-2xl font-black text-gray-900">100+</div>
               <div className="text-xs text-gray-400 mt-1">Ban Tersedia</div>
             </div>
             <div>
-              <div className="text-2xl font-black text-gray-900">56</div>
+              <div className="text-2xl font-black text-gray-900">100+</div>
               <div className="text-xs text-gray-400 mt-1">Tipe Motor</div>
             </div>
             <div>
