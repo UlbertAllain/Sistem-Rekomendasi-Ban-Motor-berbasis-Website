@@ -57,7 +57,7 @@ export async function getRecommendationsCBF(
       },
       similarityScore: Math.round(similarity * 10000) / 10000, // 4 desimal
       tireVector,
-      reason: generateReasonCBF(tire, similarity, tireVector),
+      reason: generateReasonCBF(tire, similarity, tireVector, userVector),
     } as RecommendationResultCBF;
   });
 
@@ -74,14 +74,21 @@ export async function getRecommendationsCBF(
 function generateReasonCBF(
   tire: any,
   similarity: number,
-  tireVector: number[]
+  tireVector: number[],
+  userVector: number[] // <- TAMBAHIN PARAMETER INI
 ): string {
   const labels = ["Grip", "Daya Tahan", "Kenyamanan", "Kesesuaian Jalan", "Harga", "Rating"];
   
-  // Cari dimensi dengan skor tertinggi di ban
-  let maxIdx = 0;
-  for (let i = 1; i < tireVector.length; i++) {
-    if (tireVector[i] > tireVector[maxIdx]) maxIdx = i;
+  // Cari dimensi dimana (Preferensi User TINGGI) dan (Skor Ban juga TINGGI)
+  let maxMatchIdx = 0;
+  let maxMatchScore = 0;
+  
+  for (let i = 0; i < tireVector.length; i++) {
+    const matchScore = userVector[i] * tireVector[i]; // User prioritasin & Ban punya nilai bagus
+    if (matchScore > maxMatchScore) {
+      maxMatchScore = matchScore;
+      maxMatchIdx = i;
+    }
   }
 
   const reasons: string[] = [];
@@ -90,9 +97,14 @@ function generateReasonCBF(
     reasons.push(`Cocok sangat tinggi (similarity ${(similarity * 100).toFixed(1)}%)`);
   } else if (similarity >= 0.7) {
     reasons.push(`Cocok baik (similarity ${(similarity * 100).toFixed(1)}%)`);
+  } else if (similarity >= 0.5) {
+    reasons.push(`Cukup cocok (similarity ${(similarity * 100).toFixed(1)}%)`);
+  } else {
+    reasons.push(`Kurang cocok tapi ini yang terbaik tersedia (similarity ${(similarity * 100).toFixed(1)}%)`);
   }
 
-  reasons.push(`Keunggulan utama: ${labels[maxIdx]} (${(tireVector[maxIdx] * 100).toFixed(0)}%)`);
+  // Ubah penjelasannya agar lebih merepresentasikan preferensi user
+  reasons.push(`Paling cocok di: ${labels[maxMatchIdx]} (Preferensimu ${(userVector[maxMatchIdx] * 100).toFixed(0)}%, Ban ini ${(tireVector[maxMatchIdx] * 100).toFixed(0)}%)`);
   
   if (tireVector[4] >= 0.8) {
     reasons.push(`Harga terjangkau (Rp${tire.price.toLocaleString("id-ID")})`);

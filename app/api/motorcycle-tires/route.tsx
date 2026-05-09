@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getMotorcycleById } from "@/lib/services/motorcycleService";
 import { getTiresBySizeFlexible } from "@/lib/services/tireService";
 
-// GET /api/motorcycle-tires?motorcycleId=xxx
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -24,7 +23,6 @@ export async function GET(request: NextRequest) {
       motorcycle.rearTire.size
     );
 
-    // Format hasil
     const tires = compatibleTires.map(({ tire, matchedFront, matchedRear }) => ({
       id: tire.id,
       fullName: tire.fullName,
@@ -38,7 +36,6 @@ export async function GET(request: NextRequest) {
       matchedRear: matchedRear?.label,
     }));
 
-    // Sort by rating desc, then price asc
     tires.sort((a, b) => b.rating - a.rating || a.price - b.price);
 
     return NextResponse.json({

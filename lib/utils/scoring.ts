@@ -6,6 +6,7 @@ import {
   RidingStyle,
   RecommendationPriority,
   RecommendationInput,
+  UserProfile,
 } from "../types/tire";
 
 // ==========================================
@@ -277,4 +278,63 @@ function ridingStyleLabel(style: RidingStyle): string {
     off_road_light: "off-road ringan",
   };
   return labels[style];
+}
+
+export function hybridPriorityScore(
+  tireFeatures: number[],
+  userWeights: UserProfile,
+  priorityBoost: number = 0.3  // 30% bonus untuk fitur prioritas
+): number {
+  // 1. Base: Weighted Sum (all features)
+  const weights = [userWeights.grip, userWeights.durability, userWeights.comfort, 
+                   userWeights.roadMatch, userWeights.price, userWeights.rating];
+  
+  let baseScore = 0;
+  let totalWeight = 0;
+  
+  for (let i = 0; i < weights.length; i++) {
+    baseScore += weights[i] * tireFeatures[i];
+    totalWeight += weights[i];
+  }
+  baseScore /= totalWeight;
+
+  // 2. Cari fitur mana yang paling diprioritaskan
+  const weightArray = [userWeights.grip, userWeights.durability, userWeights.comfort,
+                       userWeights.roadMatch, userWeights.price, userWeights.rating];
+  
+  let maxWeight = 0;
+  let maxIdx = 0;
+  for (let i = 0; i < weightArray.length; i++) {
+    if (weightArray[i] > maxWeight) {
+      maxWeight = weightArray[i];
+      maxIdx = i;
+    }
+  }
+
+  // 3. Hitung priority bonus
+  // Bonus proporsional terhadap seberapa tinggi prioritas & seberapa bagus fitur
+  const priorityFeatureScore = tireFeatures[maxIdx];
+  const priorityStrength = (maxWeight - 0.5) / 0.5;  // 0 jika 0.5, 1 jika 1.0
+  const priorityBonus = priorityBoost * priorityStrength * priorityFeatureScore;
+
+  // 4. Cari fitur kedua yang diprioritaskan (kalau ada)
+  let secondMaxWeight = 0;
+  for (let i = 0; i < weightArray.length; i++) {
+    if (i !== maxIdx && weightArray[i] > secondMaxWeight) {
+      secondMaxWeight = weightArray[i];
+    }
+  }
+
+  // Kalau ada fitur kedua yang juga tinggi, beri bonus kecil
+  let secondaryBonus = 0;
+  if (secondMaxWeight > 0.7) {
+    const secondaryStrength = (secondMaxWeight - 0.5) / 0.5;
+    secondaryBonus = (priorityBoost * 0.3) * secondaryStrength * tireFeatures[maxIdx];
+  }
+
+  // 5. Final score
+  const finalScore = baseScore + priorityBonus + secondaryBonus;
+
+  // Clamp ke 0-1
+  return Math.min(1, Math.max(0, finalScore));
 }

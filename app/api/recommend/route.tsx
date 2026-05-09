@@ -10,10 +10,7 @@ export async function POST(request: NextRequest) {
 
     const validation = validateInput(body);
     if (!validation.valid) {
-      return NextResponse.json(
-        { success: false, error: validation.error },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: validation.error }, { status: 400 });
     }
 
     const input: RecommendationInputCBF = {
@@ -22,8 +19,8 @@ export async function POST(request: NextRequest) {
       rearSize: body.rearSize,
       roadCondition: body.roadCondition,
       userProfile: body.userProfile,
-      budgetMin: body.budgetMin ? parseInt(body.budgetMin) : undefined,
-      budgetMax: body.budgetMax ? parseInt(body.budgetMax) : undefined,
+      budgetMin: body.budgetMin ? parseInt(String(body.budgetMin)) : undefined,
+      budgetMax: body.budgetMax ? parseInt(String(body.budgetMax)) : undefined,
     };
 
     const url = new URL(request.url);
@@ -40,13 +37,14 @@ export async function POST(request: NextRequest) {
       timestamp: Date.now(),
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Terjadi kesalahan";
+    const message = error instanceof Error ? error.message : "Terjadi kesalalan";
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
 
 function validateInput(body: Record<string, unknown>): { valid: boolean; error?: string } {
   const validRoad = ["smooth_asphalt", "rough_asphalt", "gravel", "mixed"];
+  const validPriority = ["grip", "durability", "comfort", "price"];
 
   if (!body.roadCondition || !validRoad.includes(body.roadCondition as string)) {
     return { valid: false, error: "roadCondition tidak valid" };
