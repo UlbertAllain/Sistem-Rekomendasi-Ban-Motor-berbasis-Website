@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sistem Rekomendasi Ban Motor
 
-## Getting Started
+Aplikasi web untuk membantu memilih ban motor berdasarkan kecocokan kendaraan dan kriteria pengguna. Repository memisahkan data kendaraan/ban, logika rekomendasi, dan endpoint API.
 
-First, run the development server:
+## Ruang lingkup
+
+- Halaman rekomendasi di `/recommend` dan penjelasan metode di `/cara-kerja`.
+- Data motor dan ban melalui endpoint `/api/motorcycles`, `/api/tires`, dan `/api/recommend`.
+- Implementasi utilitas similarity, feature vector, dan scoring di `lib/utils/`.
+- Service rekomendasi CBF serta kode eksperimen Weighted Scoring Model (WSM); sebagian implementasi lama tersimpan sebagai komentar dan tidak boleh dianggap sebagai jalur aktif.
+
+## Stack
+
+Next.js 16, React 19, TypeScript, Firebase client SDK, dan Firebase Admin SDK.
+
+## Jalankan secara lokal
 
 ```bash
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka `http://localhost:3000/recommend`. Pengoperasian fitur data memerlukan konfigurasi Firebase yang sesuai dengan file pada `lib/firebase/`. Simpan credential admin hanya di server/environment.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Struktur inti
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```text
+app/                      Halaman dan API routes
+lib/services/             Data motor, ban, dan rekomendasi
+lib/utils/                Feature vector, scoring, similarity
+lib/types/                Kontrak data
+lib/firebase/             Konfigurasi Firebase client/admin
+```
 
-## Learn More
+## Validasi
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run lint
+npm run build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Batasan:** Rekomendasi software tidak menggantikan pemeriksaan ukuran ban yang disetujui pabrikan, spesifikasi kendaraan, maupun kondisi nyata ban. Verifikasi data katalog sebelum menyajikannya sebagai rekomendasi penggunaan di jalan.
